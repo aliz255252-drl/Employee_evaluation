@@ -1,0 +1,56 @@
+-- Table Queries 
+
+CREATE TABLE IF NOT EXISTS public.hr_tbl_evaluation_setup_grades
+(
+    evaluation_setup_grade_id integer NOT NULL DEFAULT nextval('hr_tbl_evaluation_setup_grades_seq'::regclass),
+    grade character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    initial_marks double precision NOT NULL,
+    final_marks double precision NOT NULL,
+    description character varying(255) COLLATE pg_catalog."default",
+    ser_evaluation_setup_id integer NOT NULL,
+    CONSTRAINT hr_tbl_evaluation_setup_grades_pkey PRIMARY KEY (evaluation_setup_grade_id),
+    CONSTRAINT fk_evaluation_setup FOREIGN KEY (ser_evaluation_setup_id)
+        REFERENCES public.hr_tbl_evaluation_setup (ser_evaluation_setup_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.hr_tbl_evaluation_setup_grades
+    OWNER to postgres;
+
+
+
+--setup factors table
+
+CREATE TABLE IF NOT EXISTS public.hr_tbl_evaluation_setup_factors
+(
+    ser_evaluation_setup_factors_id integer NOT NULL DEFAULT nextval('hr_tbl_evaluation_setup_facto_ser_evaluation_setup_factors__seq'::regclass),
+    ser_evaluation_setup_id integer NOT NULL,
+    ser_evaluation_factor_id integer NOT NULL,
+    CONSTRAINT hr_tbl_evaluation_setup_factors_pkey PRIMARY KEY (ser_evaluation_setup_factors_id),
+    CONSTRAINT uq_employee_factor UNIQUE (ser_evaluation_setup_id, ser_evaluation_factor_id),
+    CONSTRAINT hr_tbl_evaluation_setup_factors_ser_evaluation_factor_id_fkey FOREIGN KEY (ser_evaluation_factor_id)
+        REFERENCES public.hr_tbl_evaluation_factor (ser_evaluation_factor_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT hr_tbl_evaluation_setup_factors_ser_evaluation_setup_id_fkey FOREIGN KEY (ser_evaluation_setup_id)
+        REFERENCES public.hr_tbl_evaluation_setup (ser_evaluation_setup_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.hr_tbl_evaluation_setup_factors
+    OWNER to postgres;
+
+
+
+
+--evaluator setup table 
