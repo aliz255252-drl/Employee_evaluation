@@ -29,15 +29,17 @@ public interface EvaluatorEvaluationRepository extends JpaRepository<EvaluatorEv
     @Query(value = """
             SELECT CASE 
                 WHEN EXISTS (
-                    SELECT 1 
-                    FROM hr_tbl_evaluation_setup_evaluators e 
-                    LEFT JOIN hr_tbl_evaluator_evaluation ev ON e.ser_evaluation_setup_evaluators_id = ev.ser_evaluation_setup_evaluators_id
-                    WHERE e.ser_evaluation_setup_id = :setupId 
-                    AND (e.bln_evaluate = 'true' OR ev.ser_evaluator_evaluation_id IS NOT NULL)
-                ) 
-                THEN FALSE 
-                ELSE TRUE 
-            END
+                    SELECT 1 FROM hr_tbl_evaluator_evaluation 
+                    WHERE ser_evaluation_setup_evaluators_id IN (
+                        SELECT ser_evaluation_setup_evaluators_id 
+                        FROM hr_tbl_evaluation_setup_evaluators 
+                        WHERE ser_evaluation_setup_id = :setupId
+                    )
+                ) OR EXISTS (
+                    SELECT 1 FROM hr_tbl_evaluation_setup_evaluators 
+                    WHERE ser_evaluation_setup_id = :setupId AND bln_evaluate = 'true'
+                )
+                THEN FALSE ELSE TRUE END
             """, nativeQuery = true)
         boolean shouldProceedWithEvaluation(@Param("setupId") Integer setupId);
 
