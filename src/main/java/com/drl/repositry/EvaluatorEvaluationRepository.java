@@ -30,10 +30,10 @@ public interface EvaluatorEvaluationRepository extends JpaRepository<EvaluatorEv
             SELECT CASE 
                 WHEN EXISTS (
                     SELECT 1 
-                    FROM hr_tbl_evaluator_evaluation ev 
-                    JOIN hr_tbl_evaluation_setup_evaluators e 
-              		ON e.ser_evaluation_setup_evaluators_id = ev.ser_evaluation_setup_evaluators_id
+                    FROM hr_tbl_evaluation_setup_evaluators e 
+                    LEFT JOIN hr_tbl_evaluator_evaluation ev ON e.ser_evaluation_setup_evaluators_id = ev.ser_evaluation_setup_evaluators_id
                     WHERE e.ser_evaluation_setup_id = :setupId 
+                    AND (e.bln_evaluate = 'true' OR ev.ser_evaluator_evaluation_id IS NOT NULL)
                 ) 
                 THEN FALSE 
                 ELSE TRUE 

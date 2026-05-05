@@ -106,6 +106,9 @@ public class EmployeeEvaluationSetupController {
                     .body(updatedDto);
         
     } catch (IllegalArgumentException | IllegalStateException e) {
+        if (e.getMessage().contains("already been started")) {
+            return ResponseEntity.status(HttpStatus.SC_CONFLICT).body(e.getMessage());
+        }
         return ResponseEntity.badRequest().body(e.getMessage());
     } catch (Exception e) {
         return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR)
