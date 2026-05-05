@@ -46,7 +46,7 @@ public class GlobalCorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         //config.addAllowedOrigin("https://grmis.pulse.gop.pk");
-        config.addAllowedOriginPattern("*"); // Allow all origins for development and testing
+        config.addAllowedOrigin("http://10.5.1.3");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);

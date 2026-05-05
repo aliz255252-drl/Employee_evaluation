@@ -1,6 +1,7 @@
 package com.drl.repositry;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -8,7 +9,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.drl.entities.EvaluationSetupEvaluator;
 import com.drl.entities.EvaluatorEvaluation;
+import com.drl.entities.HrEvaluationFactor;
 import com.drl.utils.EvaluatorEvaluationDTO;
 
 import jakarta.transaction.Transactional;
@@ -43,6 +46,8 @@ public interface EvaluatorEvaluationRepository extends JpaRepository<EvaluatorEv
             """, nativeQuery = true)
         boolean shouldProceedWithEvaluation(@Param("setupId") Integer setupId);
 
-	
+	Optional<EvaluatorEvaluation> findFirstByEvaluationSetupEvaluatorAndEvaluationFactor(
+			EvaluationSetupEvaluator evaluationSetupEvaluator, 
+			HrEvaluationFactor evaluationFactor);
 	
 }

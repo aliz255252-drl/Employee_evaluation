@@ -135,46 +135,66 @@ public class EvaluationService {
 	}
 
 	public void saveEvaluation(List<EvaluationDTO> evaluationDTO) throws Exception {
-		// List<EvaluationDTO> evaluationDTO = empEvaluationDTO.getEvaluationDTO();
-		// List<EvaluatorEvaluationDocument> documentlist =
-		// empevaluationDTO.getDocumentsList();
+
 		if (evaluationDTO == null || evaluationDTO.isEmpty()) {
 			throw new Exception("List of Evaluator Evaluations cannot be empty");
 		}
+
 		for (EvaluationDTO dto : evaluationDTO) {
-			// factor Id setting to entity
+
 			if (dto.getEvaluationFactorId() == null) {
 				throw new Exception("Missing required fields in DTO");
 			}
-			EvaluatorEvaluation evaluatorEvaluation = new EvaluatorEvaluation();
+
+			// 1. Resolve Factor
 			HrEvaluationFactor factor = factorRepo.findFirstByName(dto.getFactorName());
-			if (factor != null) {
-				evaluatorEvaluation.setEvaluationFactor(factor);
+			if (factor == null) {
+				throw new Exception("Factor not found: " + dto.getFactorName());
 			}
 
-			// ser_user_id is setting into entity
-			Optional<User> user = userRepo.findByTxtUserName(dto.getUserName());
-			if (user.isPresent()) {
-				evaluatorEvaluation.setUser(user.get());
+			// 2. Resolve User
+			Optional<User> userOpt = userRepo.findByTxtUserName(dto.getUserName());
+			if (!userOpt.isPresent()) {
+				throw new Exception("User not found: " + dto.getUserName());
 			}
+			User user = userOpt.get();
 
-			// evaluators id is setting into the entity
+			// 3. Resolve Setup
 			Optional<EmpEvaluationSetup> evaluatorSetup = setupRepository
-					.findFirstByCampaign_CampaignIdAndEmployee_EmpId(dto.getCampaignId(), dto.getSerEmpId());
-			if (evaluatorSetup.isPresent()) {
-				EvaluationSetupEvaluator evaluationEvaluator = (EvaluationSetupEvaluator) evaluatorsRepository
-						.findbyevaluationsetupId(evaluatorSetup.get().getId(), user.get().getSerUserId());
-				evaluatorEvaluation.setEvaluationSetupEvaluator(evaluationEvaluator);
+					.findFirstByCampaign_CampaignIdAndEmployee_EmpId(
+							dto.getCampaignId(),
+							dto.getSerEmpId());
+
+			if (!evaluatorSetup.isPresent()) {
+				throw new Exception("Evaluation setup not found for campaign/employee");
 			}
+
+			// 4. Resolve Evaluator record for this setup
+			EvaluationSetupEvaluator evaluationEvaluator = evaluatorsRepository.findbyevaluationsetupId(
+					evaluatorSetup.get().getId(),
+					user.getSerUserId());
+			
+			if (evaluationEvaluator == null) {
+				throw new Exception("Evaluator record not found for user and setup");
+			}
+
+			// 5. 🔴 Find existing record (to enable UPDATE)
+			Optional<EvaluatorEvaluation> existingOpt = evaluatorEvaluationRepository
+					.findFirstByEvaluationSetupEvaluatorAndEvaluationFactor(evaluationEvaluator, factor);
+
+			EvaluatorEvaluation evaluatorEvaluation = existingOpt.orElse(new EvaluatorEvaluation());
+
+			// 6. Set/Update values
+			evaluatorEvaluation.setEvaluationFactor(factor);
+			evaluatorEvaluation.setUser(user);
+			evaluatorEvaluation.setEvaluationSetupEvaluator(evaluationEvaluator);
 			evaluatorEvaluation.setObtainMarks(dto.getObtainMarks());
 			evaluatorEvaluation.setObtainLevel(dto.getObtainLevel());
 			evaluatorEvaluation.setRecommendation(dto.getRecommendation());
 			evaluatorEvaluation.setUserComments(dto.getUserComments());
-			// Save the entity
-			evaluatorEvaluationRepository.save(evaluatorEvaluation);
-			// evaluationEvaluator.setBlnEvaluate("ture");
-			// evaluatorsRepository.saveAndFlush(evaluationEvaluator);
 
+			// Save (INSERT or UPDATE automatically)
+			evaluatorEvaluationRepository.save(evaluatorEvaluation);
 		}
 	}
 
