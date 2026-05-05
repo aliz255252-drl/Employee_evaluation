@@ -287,7 +287,7 @@ public class EvaluationService {
 
 			EmpEvaluationSetup setup = setupOpt.get();
 			System.out.println("Setup id :::::::::::::::::::" + setup.getId());
-			if (!setupRepository.shouldProceedWithEvaluation(setup.getId())) {
+			if (!evaluatorEvaluationRepository.shouldProceedWithEvaluation(setup.getId())) {
 				return ResponseEntity.status(HttpStatus.CONFLICT)
 						.body("Evaluation cannot proceed. It may already be completed or locked.");
 			}

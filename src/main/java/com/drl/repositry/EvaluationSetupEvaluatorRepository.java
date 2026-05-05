@@ -33,6 +33,7 @@ public interface EvaluationSetupEvaluatorRepository extends JpaRepository<Evalua
 	int deleteBySetupId(@Param("setupId") Integer setupId);
 	
 	@Modifying
+	@Transactional
 	@Query(value = "delete from hr_tbl_evaluation_setup_evaluators  WHERE ser_evaluation_setup_id = :setupId and ser_user_id = :userId", nativeQuery = true)
 	int deleteevaluatorsBySetupId(@Param("setupId") Integer setupId,
 								@Param("userId") Integer userId);

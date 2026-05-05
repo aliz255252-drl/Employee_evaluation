@@ -432,6 +432,7 @@ public class EvaluationSetupService {
         }
     }
 
+    @Transactional
     public ResponseEntity<Object> deleteFactorsSetup(Integer employeeId, Integer campaignId, Integer factorId) {
         try {
             HrEmployee employee = new HrEmployee();
@@ -468,6 +469,7 @@ public class EvaluationSetupService {
         }
     }
 
+    @Transactional
     public ResponseEntity<Object> deleteEvaluators(Integer employeeId, Integer campaignId, String user_name) {
         try {
             HrEmployee employee = new HrEmployee();
@@ -487,16 +489,22 @@ public class EvaluationSetupService {
 
             Optional<User> user = userRepoistory.findByTxtUserName(user_name);
             if (user.isEmpty()) {
+                System.out.println("User NOT FOUND with username: " + user_name);
                 return ResponseEntity.status(HttpStatus.SC_NOT_FOUND).body("User not found: " + user_name);
             }
+            System.out.println("Found evaluator: " + user.get().getTxtUserName() + " (ID: " + user.get().getSerUserId() + ")");
 
             for (EmpEvaluationSetup setup : setups) {
                 // Check if it's safe to delete
                 boolean canDelete = evaluatorEvlauationRepository.shouldProceedWithEvaluation(setup.getId());
+                System.out.println("Checking if delete is allowed for Setup ID " + setup.getId() + ": " + canDelete);
+                
                 if (!canDelete) {
+                    System.out.println("Delete BLOCKED because evaluation already started.");
                     return ResponseEntity.status(HttpStatus.SC_CONFLICT)
                             .body("Cannot delete because evaluation has already been started");
                 }
+                System.out.println("Proceeding with delete for Evaluator ID: " + user.get().getSerUserId());
                 evaluatorRepository.deleteevaluatorsBySetupId(setup.getId(), user.get().getSerUserId());
             }
             return ResponseEntity.ok("Evaluator(s) setup deleted successfully.");
@@ -505,7 +513,7 @@ public class EvaluationSetupService {
             // Log error (you should use a logger in production)
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while trying to delete the Evaluator.");
+                    .body("Error: " + e.getMessage());
         }
     }
 
